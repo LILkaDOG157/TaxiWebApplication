@@ -1,0 +1,14 @@
+{
+  "/not-found": "app/not-found.js",
+  "/page": "app/page.js",
+  "/admin/dashboard/page": "app/admin/dashboard/page.js",
+  "/admin/content/requirements/page": "app/admin/content/requirements/page.js",
+  "/admin/content/contact/page": "app/admin/content/contact/page.js",
+  "/requirements/page": "app/requirements/page.js",
+  "/api/public/requirements/route": "app/api/public/requirements/route.js",
+  "/about/page": "app/about/page.js",
+  "/api/requirements/route": "app/api/requirements/route.js",
+  "/admin/news/list/page": "app/admin/news/list/page.js",
+  "/api/news/route": "app/api/news/route.js",
+  "/admin/news/create/page": "app/admin/news/create/page.js"
+}

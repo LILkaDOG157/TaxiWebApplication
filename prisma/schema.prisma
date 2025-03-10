@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Модель для новостей
+model News {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  image     String?
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Модель для контактной информации
+model Contact {
+  id            String   @id @default(cuid())
+  address       String
+  phone         String
+  email         String
+  workingHours  Json     // Хранит часы работы в формате JSON
+  socialMedia   Json     // Хранит ссылки на соц. сети в формате JSON
+  updatedAt     DateTime @updatedAt
+}
+
+// Модель для требований к водителям
+model Requirement {
+  id        String   @id @default(cuid())
+  section   String   // basic, documents, car
+  title     String
+  items     String[] // Массив требований
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Модель для информации о компании
+model About {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  mission     String   @db.Text
+  values      Json     // Хранит ценности компании в формате JSON
+  updatedAt   DateTime @updatedAt
+}
+
+// Модель для водителей
+model Driver {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String
+  email         String
+  status        String   @default("pending") // pending, approved, rejected
+  documents     Json     // Хранит информацию о документах
+  carInfo       Json     // Хранит информацию об автомобиле
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
