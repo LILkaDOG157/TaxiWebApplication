@@ -55,15 +55,38 @@ model About {
   updatedAt   DateTime @updatedAt
 }
 
-// Модель для водителей
+enum TariffClass {
+  ECONOMY
+  COMFORT
+  BUSINESS
+  PREMIUM
+}
+
 model Driver {
-  id            String   @id @default(cuid())
-  name          String
-  phone         String
-  email         String
-  status        String   @default("pending") // pending, approved, rejected
-  documents     Json     // Хранит информацию о документах
-  carInfo       Json     // Хранит информацию об автомобиле
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String      @id @default(cuid())
+  applicationId String      @unique
+  application   DriverApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  carNumber     String
+  licensePhoto  String
+  faceVideo     String
+  tariffClasses TariffClass[]
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([applicationId])
+}
+
+model DriverApplication {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String
+  email       String
+  experience  Int
+  carYear     Int
+  hasLicense  Boolean
+  status      String   // NEW, PROCESSING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  driver      Driver?
 }

@@ -2,16 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import AdminGuard from '@/app/components/AdminGuard';
+import AdminGuard from '../../../components/AdminGuard';
 
 interface NewsItem {
   id: string;
   title: string;
   content: string;
-  image: string | null;
-  status: 'published' | 'draft';
+  status: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 export default function NewsList() {
@@ -26,129 +24,87 @@ export default function NewsList() {
   const fetchNews = async () => {
     try {
       const response = await fetch('/api/news');
-      if (!response.ok) throw new Error('Failed to fetch news');
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке новостей');
+      }
       const data = await response.json();
       setNews(data);
     } catch (err) {
-      setError('Ошибка при загрузке новостей');
+      setError(err instanceof Error ? err.message : 'Произошла ошибка');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите удалить эту новость?')) return;
-
-    try {
-      const response = await fetch(`/api/news/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete news');
-      setNews(news.filter(item => item.id !== id));
-    } catch (err) {
-      setError('Ошибка при удалении новости');
-    }
-  };
-
-  if (loading) return <div>Загрузка...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
-
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-gray-100">
-        <header className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div className="flex items-center space-x-6">
-              <h1 className="text-2xl font-bold text-gray-900">Управление новостями</h1>
-              <Link
-                href="/"
-                target="_blank"
-                className="text-yellow-500 hover:text-yellow-600 transition-colors duration-300 flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-                <span>Открыть сайт</span>
-              </Link>
-            </div>
-            <div className="flex space-x-4">
-              <Link
-                href="/admin/dashboard"
-                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-300"
-              >
-                Назад
-              </Link>
-              <Link
-                href="/admin/news/create"
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors duration-300"
-              >
-                Добавить новость
-              </Link>
-            </div>
-          </div>
-        </header>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Список новостей</h1>
+          <Link
+            href="/admin/news/create"
+            className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
+          >
+            Добавить новость
+          </Link>
+        </div>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Заголовок
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Дата
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Статус
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Действия
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {news.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.title}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">
-                        {new Date(item.createdAt).toLocaleDateString('ru-RU')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        item.status === 'published' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {item.status === 'published' ? 'Опубликовано' : 'Черновик'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-3">
+        {loading && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && news.length === 0 && (
+          <div className="text-center py-8 text-gray-600">
+            Нет доступных новостей
+          </div>
+        )}
+
+        {!loading && !error && news.length > 0 && (
+          <div className="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul className="divide-y divide-gray-200">
+              {news.map((item) => (
+                <li key={item.id}>
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {item.title}
+                      </h3>
+                      <div className="flex space-x-2">
                         <Link
                           href={`/admin/news/edit/${item.id}`}
                           className="text-yellow-600 hover:text-yellow-900"
                         >
                           Редактировать
                         </Link>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Удалить
-                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                    <div className="mt-2 sm:flex sm:justify-between">
+                      <div className="sm:flex">
+                        <p className="flex items-center text-sm text-gray-500">
+                          Статус: {item.status}
+                        </p>
+                      </div>
+                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
+                        <p>
+                          Создано:{' '}
+                          {new Date(item.createdAt).toLocaleDateString('ru-RU')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
-        </main>
+        )}
       </div>
     </AdminGuard>
   );

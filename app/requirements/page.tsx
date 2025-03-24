@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 
 interface Requirement {
@@ -14,6 +14,17 @@ export default function RequirementsPage() {
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    experience: '',
+    carYear: '',
+    hasLicense: false
+  });
+  const registrationFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchRequirements();
@@ -30,6 +41,55 @@ export default function RequirementsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
+
+      setSubmitSuccess(true);
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        experience: '',
+        carYear: '',
+        hasLicense: false
+      });
+    } catch (err) {
+      setError('Ошибка при отправке заявки. Пожалуйста, попробуйте позже.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const scrollToRegistration = () => {
+    registrationFormRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
   };
 
   if (loading) {
@@ -132,9 +192,155 @@ export default function RequirementsPage() {
             <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
               Если вы соответствуете всем требованиям, начните регистрацию прямо сейчас!
             </p>
-            <Link href="/register" className="btn-primary">
+            <button
+              onClick={scrollToRegistration}
+              className="btn-primary"
+            >
               Начать регистрацию
-            </Link>
+            </button>
+          </div>
+        </section>
+
+        {/* Registration Form Section */}
+        <section ref={registrationFormRef} className="bg-white/95 backdrop-blur-sm py-16 scroll-mt-24">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
+                Регистрация водителя
+              </h2>
+              {submitSuccess ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                  <svg
+                    className="w-12 h-12 text-green-500 mx-auto mb-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-semibold text-green-800 mb-2">
+                    Заявка успешно отправлена!
+                  </h3>
+                  <p className="text-green-700">
+                    Спасибо за интерес к работе в нашей компании. Наши менеджеры свяжутся с вами в ближайшее время для обсуждения деталей.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                        ФИО
+                      </label>
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                        Телефон
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
+                        Стаж вождения (лет)
+                      </label>
+                      <input
+                        type="number"
+                        id="experience"
+                        name="experience"
+                        value={formData.experience}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="carYear" className="block text-sm font-medium text-gray-700 mb-1">
+                        Год выпуска автомобиля
+                      </label>
+                      <input
+                        type="number"
+                        id="carYear"
+                        name="carYear"
+                        value={formData.carYear}
+                        onChange={handleInputChange}
+                        min="1990"
+                        max={new Date().getFullYear()}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+                        required
+                      />
+                    </div>
+                    <div className="flex items-center h-full">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="hasLicense"
+                          checked={formData.hasLicense}
+                          onChange={handleInputChange}
+                          className="w-5 h-5 text-yellow-500 border-gray-300 rounded focus:ring-yellow-500"
+                          required
+                        />
+                        <span className="text-sm text-gray-700">
+                          Есть действующее водительское удостоверение
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                      {error}
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="bg-yellow-500 text-white px-8 py-3 rounded-lg text-lg font-semibold 
+                               hover:bg-yellow-600 transition-colors duration-300 shadow-lg hover:shadow-xl
+                               disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {submitting ? 'Отправка...' : 'Отправить заявку'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           </div>
         </section>
       </main>

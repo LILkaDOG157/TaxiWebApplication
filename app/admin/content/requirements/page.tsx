@@ -161,7 +161,7 @@ export default function EditRequirements() {
               <div key={section} className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">{data.title}</h2>
                 <div className="space-y-4">
-                  {data.items.map((item, index) => (
+                  {data.items.map((item: string, index: number) => (
                     <div key={index} className="flex items-center space-x-4">
                       <input
                         type="text"

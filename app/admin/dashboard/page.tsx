@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import AdminGuard from '@/app/components/AdminGuard';
+import AdminGuard from '../../components/AdminGuard';
 
 export default function AdminDashboard() {
   const handleLogout = () => {
